@@ -8,7 +8,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS account_titles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            category SMALLINT NOT NULL
+            category SMALLINT NOT NULL,
+            borrowing_type INTEGER DEFAULT 1,
+            allocation INTEGER DEFAULT 0
         )
     ''')
 

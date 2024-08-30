@@ -1,2 +1,3 @@
 .idea/
 accounting.db
+**/__pycache__/

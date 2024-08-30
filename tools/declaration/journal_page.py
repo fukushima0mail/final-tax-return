@@ -17,11 +17,12 @@ class JournalPage(tk.Frame):
         self.current_year = datetime.now().year - 1
 
         # Treeview for displaying journal entries
-        self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount"), show='headings', selectmode='browse')
+        self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
         self.tree.heading("Credit Account", text="貸方勘定科目")
         self.tree.heading("Amount", text="金額")
+        self.tree.heading("Comment", text="コメント")
         self.tree.pack(pady=10, fill="both", expand=True, padx=20)
 
         # Frame for input form
@@ -80,6 +81,11 @@ class JournalPage(tk.Frame):
         self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
         self.entry_amount.bind("<Return>", self.handle_enter_key)
 
+        # Comment
+        tk.Label(parent, text="コメント", bg="lightgray").grid(row=0, column=10, padx=10, pady=5, sticky="e")
+        self.entry_comment = tk.Entry(parent, width=30)
+        self.entry_comment.grid(row=0, column=11, padx=10, pady=5, sticky="w")
+
     def handle_enter_key(self, event):
         """Enterキーが押されたときの処理"""
         self.add_journal_entry()
@@ -111,7 +117,7 @@ class JournalPage(tk.Frame):
         conn = sqlite3.connect('accounting.db')
         c = conn.cursor()
         c.execute('''
-            SELECT j.id, j.year, j.date, d.name, c.name, j.amount
+            SELECT j.id, j.year, j.date, d.name, c.name, j.amount, j.comment
             FROM journal_entries j
             JOIN account_titles d ON j.debit_account_id = d.id
             JOIN account_titles c ON j.credit_account_id = c.id
@@ -120,8 +126,8 @@ class JournalPage(tk.Frame):
         conn.close()
 
         for entry in entries:
-            entry_id, year, date, debit_account, credit_account, amount = entry
-            self.tree.insert('', 'end', iid=entry_id, values=(f"{year}-{date}", debit_account, credit_account, amount))
+            entry_id, year, date, debit_account, credit_account, amount, comment = entry
+            self.tree.insert('', 'end', iid=entry_id, values=(f"{year}-{date}", debit_account, credit_account, amount, comment))
 
     def add_journal_entry(self):
         year = int(self.entry_year.get())
@@ -129,8 +135,9 @@ class JournalPage(tk.Frame):
         debit_account_name = self.debit_account_var.get()
         credit_account_name = self.credit_account_var.get()
         amount = int(self.entry_amount.get())
+        comment = self.entry_comment.get()
 
-        if not year or not date_text or not debit_account_name or not credit_account_name:
+        if not year or not date_text or not debit_account_name or not credit_account_name or not amount:
             messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
             return
 
@@ -151,14 +158,15 @@ class JournalPage(tk.Frame):
 
         c.execute('''
             INSERT INTO journal_entries 
-            (year, date, debit_account_id, credit_account_id, amount) 
-            VALUES (?, ?, ?, ?, ?)
-        ''', (year, date, debit_account_id, credit_account_id, amount))
+            (year, date, debit_account_id, credit_account_id, amount, comment) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (year, date, debit_account_id, credit_account_id, amount, comment))
 
         conn.commit()
         conn.close()
 
         self.load_journal_entries()  # 追加後にリストを更新
+
 
     def delete_journal_entry(self):
         selected_item = self.tree.selection()

@@ -20,6 +20,7 @@ def init_db():
             debit_account_id INTEGER NOT NULL,
             credit_account_id INTEGER NOT NULL,
             amount INTEGER NOT NULL,
+            comment TEXT,
             FOREIGN KEY(debit_account_id) REFERENCES account_titles(id),
             FOREIGN KEY(credit_account_id) REFERENCES account_titles(id)
         )

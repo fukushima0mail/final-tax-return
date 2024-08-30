@@ -13,15 +13,8 @@ class JournalPage(tk.Frame):
         # Title
         tk.Label(self, text="仕訳の入力", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
-        # Frame for input form
-        form_frame = tk.Frame(self, bg="lightgray")
-        form_frame.pack(padx=20, pady=10, fill="x")
-
         # Default year to last year
         self.current_year = datetime.now().year - 1
-
-        # Create input widgets
-        self.create_input_widgets(form_frame)
 
         # Treeview for displaying journal entries
         self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount"), show='headings', selectmode='browse')
@@ -30,6 +23,13 @@ class JournalPage(tk.Frame):
         self.tree.heading("Credit Account", text="貸方勘定科目")
         self.tree.heading("Amount", text="金額")
         self.tree.pack(pady=10, fill="both", expand=True, padx=20)
+
+        # Frame for input form
+        form_frame = tk.Frame(self, bg="lightgray")
+        form_frame.pack(padx=20, pady=10, fill="x")
+
+        # Create input widgets
+        self.create_input_widgets(form_frame)
 
         # Button frame for actions
         button_frame = tk.Frame(self, bg="lightgray")
@@ -45,6 +45,9 @@ class JournalPage(tk.Frame):
         # Back button
         btn_back = tk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
+
+        # Set default size for TreeView
+        self.tree.config(height=15)  # Set the number of visible rows in the TreeView
 
     def create_input_widgets(self, parent):
         """Create input widgets arranged horizontally."""

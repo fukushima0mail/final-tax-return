@@ -75,6 +75,11 @@ class JournalPage(tk.Frame):
         tk.Label(parent, text="金額", bg="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
         self.entry_amount = tk.Entry(parent, width=10)
         self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
+        self.entry_amount.bind("<Return>", self.handle_enter_key)
+
+    def handle_enter_key(self, event):
+        """Enterキーが押されたときの処理"""
+        self.add_journal_entry()
 
     def update_account_menus(self):
         """データベースから勘定科目を読み込み、OptionMenuを更新する"""

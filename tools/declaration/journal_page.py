@@ -24,12 +24,23 @@ class JournalPage(tk.Frame):
         self.create_input_widgets(form_frame)
 
         # Treeview for displaying journal entries
-        self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount"), show='headings')
+        self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount"), show='headings', selectmode='browse')
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
         self.tree.heading("Credit Account", text="貸方勘定科目")
         self.tree.heading("Amount", text="金額")
         self.tree.pack(pady=10, fill="both", expand=True, padx=20)
+
+        # Button frame for actions
+        button_frame = tk.Frame(self, bg="lightgray")
+        button_frame.pack(pady=10)
+
+        # Add and delete buttons
+        btn_add = tk.Button(button_frame, text="追加", command=self.add_journal_entry)
+        btn_add.pack(side="left", padx=5)
+
+        btn_delete = tk.Button(button_frame, text="削除", command=self.delete_journal_entry)
+        btn_delete.pack(side="left", padx=5)
 
         # Back button
         btn_back = tk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
@@ -65,10 +76,6 @@ class JournalPage(tk.Frame):
         self.entry_amount = tk.Entry(parent, width=10)
         self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
 
-        # Add button
-        btn_add = tk.Button(parent, text="追加", command=self.add_journal_entry)
-        btn_add.grid(row=0, column=10, columnspan=2, padx=10, pady=5, sticky="ew")
-
     def update_account_menus(self):
         """データベースから勘定科目を読み込み、OptionMenuを更新する"""
         conn = sqlite3.connect('accounting.db')
@@ -96,7 +103,7 @@ class JournalPage(tk.Frame):
         conn = sqlite3.connect('accounting.db')
         c = conn.cursor()
         c.execute('''
-            SELECT j.year, j.date, d.name, c.name, j.amount
+            SELECT j.id, j.year, j.date, d.name, c.name, j.amount
             FROM journal_entries j
             JOIN account_titles d ON j.debit_account_id = d.id
             JOIN account_titles c ON j.credit_account_id = c.id
@@ -105,8 +112,8 @@ class JournalPage(tk.Frame):
         conn.close()
 
         for entry in entries:
-            year, date, debit_account, credit_account, amount = entry
-            self.tree.insert('', 'end', values=(f"{year}-{date}", debit_account, credit_account, amount))
+            entry_id, year, date, debit_account, credit_account, amount = entry
+            self.tree.insert('', 'end', iid=entry_id, values=(f"{year}-{date}", debit_account, credit_account, amount))
 
     def add_journal_entry(self):
         year = int(self.entry_year.get())
@@ -144,6 +151,21 @@ class JournalPage(tk.Frame):
         conn.close()
 
         self.load_journal_entries()  # 追加後にリストを更新
+
+    def delete_journal_entry(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("選択エラー", "削除する仕訳を選択してください。")
+            return
+
+        entry_id = selected_item[0]
+        conn = sqlite3.connect('accounting.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM journal_entries WHERE id = ?', (entry_id,))
+        conn.commit()
+        conn.close()
+
+        self.load_journal_entries()  # 削除後にリストを更新
 
     def tkraise(self, *args, **kwargs):
         """ページが表示されたときに勘定科目と仕訳を読み込む"""

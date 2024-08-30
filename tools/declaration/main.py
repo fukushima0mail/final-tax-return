@@ -8,7 +8,7 @@ class Application(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("青色申告アプリ")
-        self.geometry("400x400")
+        self.geometry("1200x700")
 
         self.frames = {}
         for F in (StartPage, AccountPage, JournalPage):

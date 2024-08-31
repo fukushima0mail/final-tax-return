@@ -1,6 +1,7 @@
 import tkinter as tk
 from db.init import init_table
 from start_page import StartPage
+from general_page import GeneralLedgerPage
 from account_page import AccountPage
 from journal_page import JournalPage
 
@@ -11,7 +12,7 @@ class Application(tk.Tk):
         self.geometry("1200x700")
 
         self.frames = {}
-        for F in (StartPage, AccountPage, JournalPage):
+        for F in (StartPage, AccountPage, JournalPage, GeneralLedgerPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame

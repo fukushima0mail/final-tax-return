@@ -71,3 +71,32 @@ def delete_journal(id):
     c.execute('DELETE FROM journal_entries WHERE id = ?', (id,))
     conn.commit()
     conn.close()
+
+def get_general(account_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        SELECT
+            j.date,
+            CASE 
+                WHEN j.debit_account_id = ? THEN ac_credit.name
+                ELSE ac_debit.name
+            END as counterparty_account,
+            j.comment,
+            CASE 
+                WHEN j.debit_account_id = ? THEN j.amount
+                ELSE 0
+            END as debit,
+            CASE 
+                WHEN j.credit_account_id = ? THEN j.amount
+                ELSE 0
+            END as credit
+        FROM journal_entries j
+        JOIN account_titles ac_debit ON j.debit_account_id = ac_debit.id
+        JOIN account_titles ac_credit ON j.credit_account_id = ac_credit.id
+        WHERE j.debit_account_id = ? OR j.credit_account_id = ?
+        ORDER BY j.date
+    ''', (account_id, account_id, account_id, account_id, account_id))
+    rows = c.fetchall()
+    conn.close()
+    return rows

@@ -14,3 +14,7 @@ class StartPage(tk.Frame):
         btn_journal = tk.Button(self, text="仕訳の入力",
                                 command=lambda: controller.show_frame("JournalPage"))
         btn_journal.pack(pady=10)
+
+        btn_journal = tk.Button(self, text="総勘定元帳",
+                                command=lambda: controller.show_frame("GeneralLedgerPage"))
+        btn_journal.pack(pady=10)

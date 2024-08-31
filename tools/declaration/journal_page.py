@@ -20,7 +20,7 @@ class JournalPage(tk.Frame):
 
         # Treeview for displaying journal entries
         self.tree = ttk.Treeview(self, columns=("Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
-        self.tree.heading("Year", text="年度")
+        self.tree.column("Year", width=0, stretch=False, minwidth=0)
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
         self.tree.heading("Credit Account", text="貸方勘定科目")
@@ -126,25 +126,8 @@ class JournalPage(tk.Frame):
             self.tree.insert('', 'end', iid=entry_id, values=(year, date, debit_account, credit_account, amount, comment))
 
     def add_journal_entry(self):
-        year = int(self.entry_year.get())
-        date_text = self.entry_date.get()
-        debit_account_name = self.debit_account_var.get()
-        credit_account_name = self.credit_account_var.get()
-        amount = int(self.entry_amount.get())
-        comment = self.entry_comment.get()
-
-        if not year or not date_text or not debit_account_name or not credit_account_name or not amount:
-            messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
-            return
-
-        month, day = map(int, date_text.split('/'))
-        if 4 <= month <= 12:
-            date = f"{year}-{month:02d}-{day:02d}"
-        else:
-            date = f"{year + 1}-{month:02d}-{day:02d}"
-
-        add_journal(year, date, debit_account_name, credit_account_name, amount, comment)
-
+        journal = self.get_input_journal_entry()
+        add_journal(*journal)
         self.load_journal_entries()  # 追加後にリストを更新
 
     def update_journal_entry(self):
@@ -155,6 +138,12 @@ class JournalPage(tk.Frame):
         
         iid = selected_item[0]
 
+        journal = self.get_input_journal_entry()
+        update_journal(iid, *journal)
+
+        self.load_journal_entries()
+
+    def get_input_journal_entry(self):
         year = int(self.entry_year.get())
         date_text = self.entry_date.get()
         debit_account_name = self.debit_account_var.get()
@@ -172,9 +161,7 @@ class JournalPage(tk.Frame):
         else:
             date = f"{year + 1}-{month:02d}-{day:02d}"
 
-        update_journal(iid, year, date, debit_account_name, credit_account_name, amount, comment)
-
-        self.load_journal_entries()
+        return (year, date, debit_account_name, credit_account_name, amount, comment)
 
     def delete_journal_entry(self):
         selected_item = self.tree.selection()

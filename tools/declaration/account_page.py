@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-import sqlite3
+
+from db.account_titles import (
+    add_account, get_all_accounts,
+    update_account, delete_account
+)
 
 CATEGORY_OPTIONS = {
     "資産": 1,
@@ -86,11 +90,7 @@ class AccountPage(tk.Frame):
     def load_account_titles(self):
         """データベースから勘定科目を読み込んでリストボックスに表示する"""
         self.tree.delete(*self.tree.get_children())  # Clear existing entries
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('SELECT id, name, category, borrowing_type, allocation FROM account_titles')
-        account_titles = c.fetchall()
-        conn.close()
+        account_titles = get_all_accounts()
 
         for entry_id, name, category, borrowing_type, allocation in account_titles:
             category_text = [k for k, v in CATEGORY_OPTIONS.items() if v == category][0]
@@ -107,11 +107,7 @@ class AccountPage(tk.Frame):
             messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
             return
 
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('INSERT INTO account_titles (name, category, borrowing_type, allocation) VALUES (?, ?, ?, ?)', (name, category, borrowing_type, allocation))
-        conn.commit()
-        conn.close()
+        add_account(name, category, borrowing_type, allocation)
 
         self.load_account_titles()
 
@@ -120,6 +116,8 @@ class AccountPage(tk.Frame):
         if not selected_item:
             messagebox.showwarning("選択エラー", "更新する勘定科目を選択してください。")
             return
+        
+        iid = selected_item[0]
 
         name = self.entry_name.get()
         category_text = self.category_var.get()
@@ -127,15 +125,7 @@ class AccountPage(tk.Frame):
         borrowing_type = int(self.entry_borrowing_type.get())
         allocation = int(self.entry_allocation.get())
 
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('''
-            UPDATE account_titles
-            SET name = ?, category = ?, borrowing_type = ?, allocation = ?
-            WHERE name = ?
-        ''', (name, category, borrowing_type, allocation, name))
-        conn.commit()
-        conn.close()
+        update_account(iid, name, category, borrowing_type, allocation)
 
         self.load_account_titles()  # Refresh the list
 
@@ -145,12 +135,8 @@ class AccountPage(tk.Frame):
             messagebox.showwarning("削除エラー", "削除する勘定科目を選択してください。")
             return
 
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
         entry_id = selected_item[0]
-        c.execute('DELETE FROM account_titles WHERE id = ?', (entry_id,))
-        conn.commit()
-        conn.close()
+        delete_account(entry_id)
 
         self.load_account_titles()  # 削除後にリストを更新
 

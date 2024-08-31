@@ -1,5 +1,5 @@
 import tkinter as tk
-from db import init_db
+from db.init import init_table
 from start_page import StartPage
 from account_page import AccountPage
 from journal_page import JournalPage
@@ -24,6 +24,6 @@ class Application(tk.Tk):
         frame.tkraise()
 
 if __name__ == "__main__":
-    init_db()
+    init_table()
     app = Application()
     app.mainloop()

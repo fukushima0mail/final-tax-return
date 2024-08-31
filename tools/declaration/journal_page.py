@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-import sqlite3
 from datetime import datetime
+
+from db.journal_entries import add_journal, delete_journal, get_all_journals, update_journal
+from db.account_titles import get_account_names
 
 class JournalPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -17,13 +19,16 @@ class JournalPage(tk.Frame):
         self.current_year = datetime.now().year - 1
 
         # Treeview for displaying journal entries
-        self.tree = ttk.Treeview(self, columns=("Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree = ttk.Treeview(self, columns=("Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree.heading("Year", text="年度")
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
         self.tree.heading("Credit Account", text="貸方勘定科目")
         self.tree.heading("Amount", text="金額")
         self.tree.heading("Comment", text="コメント")
         self.tree.pack(pady=10, fill="both", expand=True, padx=20)
+
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
 
         # Frame for input form
         form_frame = tk.Frame(self, bg="lightgray")
@@ -39,6 +44,9 @@ class JournalPage(tk.Frame):
         # Add and delete buttons
         btn_add = tk.Button(button_frame, text="追加", command=self.add_journal_entry)
         btn_add.pack(side="left", padx=5)
+
+        btn_update = tk.Button(button_frame, text="更新", command=self.update_journal_entry)
+        btn_update.pack(side="left", padx=5)
 
         btn_delete = tk.Button(button_frame, text="削除", command=self.delete_journal_entry)
         btn_delete.pack(side="left", padx=5)
@@ -92,11 +100,7 @@ class JournalPage(tk.Frame):
 
     def update_account_menus(self):
         """データベースから勘定科目を読み込み、OptionMenuを更新する"""
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('SELECT name FROM account_titles')
-        account_titles = [row[0] for row in c.fetchall()]
-        conn.close()
+        account_titles = get_account_names()
 
         self.debit_account_var.set(account_titles[0] if account_titles else '')
         self.credit_account_var.set(account_titles[0] if account_titles else '')
@@ -114,20 +118,12 @@ class JournalPage(tk.Frame):
     def load_journal_entries(self):
         """データベースから仕訳を読み込んでTreeviewに表示する"""
         self.tree.delete(*self.tree.get_children())  # Clear existing entries
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('''
-            SELECT j.id, j.year, j.date, d.name, c.name, j.amount, j.comment
-            FROM journal_entries j
-            JOIN account_titles d ON j.debit_account_id = d.id
-            JOIN account_titles c ON j.credit_account_id = c.id
-        ''')
-        entries = c.fetchall()
-        conn.close()
+
+        entries = get_all_journals()
 
         for entry in entries:
             entry_id, year, date, debit_account, credit_account, amount, comment = entry
-            self.tree.insert('', 'end', iid=entry_id, values=(f"{year}-{date}", debit_account, credit_account, amount, comment))
+            self.tree.insert('', 'end', iid=entry_id, values=(year, date, debit_account, credit_account, amount, comment))
 
     def add_journal_entry(self):
         year = int(self.entry_year.get())
@@ -143,30 +139,42 @@ class JournalPage(tk.Frame):
 
         month, day = map(int, date_text.split('/'))
         if 4 <= month <= 12:
-            date = f"{month:02d}-{day:02d}"
+            date = f"{year}-{month:02d}-{day:02d}"
         else:
-            date = f"{month:02d}-{day:02d}"
+            date = f"{year + 1}-{month:02d}-{day:02d}"
 
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        
-        c.execute('SELECT id FROM account_titles WHERE name = ?', (debit_account_name,))
-        debit_account_id = c.fetchone()[0]
-
-        c.execute('SELECT id FROM account_titles WHERE name = ?', (credit_account_name,))
-        credit_account_id = c.fetchone()[0]
-
-        c.execute('''
-            INSERT INTO journal_entries 
-            (year, date, debit_account_id, credit_account_id, amount, comment) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (year, date, debit_account_id, credit_account_id, amount, comment))
-
-        conn.commit()
-        conn.close()
+        add_journal(year, date, debit_account_name, credit_account_name, amount, comment)
 
         self.load_journal_entries()  # 追加後にリストを更新
 
+    def update_journal_entry(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("選択エラー", "更新する仕訳を選択してください。")
+            return
+        
+        iid = selected_item[0]
+
+        year = int(self.entry_year.get())
+        date_text = self.entry_date.get()
+        debit_account_name = self.debit_account_var.get()
+        credit_account_name = self.credit_account_var.get()
+        amount = int(self.entry_amount.get())
+        comment = self.entry_comment.get()
+
+        if not year or not date_text or not debit_account_name or not credit_account_name or not amount:
+            messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
+            return
+
+        month, day = map(int, date_text.split('/'))
+        if 4 <= month <= 12:
+            date = f"{year}-{month:02d}-{day:02d}"
+        else:
+            date = f"{year + 1}-{month:02d}-{day:02d}"
+
+        update_journal(iid, year, date, debit_account_name, credit_account_name, amount, comment)
+
+        self.load_journal_entries()
 
     def delete_journal_entry(self):
         selected_item = self.tree.selection()
@@ -175,13 +183,33 @@ class JournalPage(tk.Frame):
             return
 
         entry_id = selected_item[0]
-        conn = sqlite3.connect('accounting.db')
-        c = conn.cursor()
-        c.execute('DELETE FROM journal_entries WHERE id = ?', (entry_id,))
-        conn.commit()
-        conn.close()
+        delete_journal(entry_id)
 
         self.load_journal_entries()  # 削除後にリストを更新
+
+    def on_tree_select(self, event):
+        selection = self.tree.selection()
+        if not selection:
+            return
+        selected_item = selection[0]
+        if selected_item:
+            values = self.tree.item(selected_item, "values")
+            self.entry_year.delete(0, tk.END)
+            self.entry_year.insert(0, values[0])
+
+            date = values[1]
+            entry_date = "/".join(date.split("-")[1:])
+            self.entry_date.delete(0, tk.END)
+            self.entry_date.insert(0, entry_date)
+
+            self.debit_account_var.set(values[2])
+            self.credit_account_var.set(values[3])
+
+            self.entry_amount.delete(0, tk.END)
+            self.entry_amount.insert(0, values[4])
+
+            self.entry_comment.delete(0, tk.END)
+            self.entry_comment.insert(0, values[5])
 
     def tkraise(self, *args, **kwargs):
         """ページが表示されたときに勘定科目と仕訳を読み込む"""

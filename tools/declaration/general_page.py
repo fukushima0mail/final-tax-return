@@ -1,11 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
-import sqlite3
 
 from db.journal_entries import get_general
 from db.account_titles import get_all_accounts
 from lib.utils import SortableTreeview
-
 
 class GeneralLedgerPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -17,42 +15,43 @@ class GeneralLedgerPage(tk.Frame):
         # Title
         tk.Label(self, text="総勘定元帳", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
-        # Scrollable canvas
-        canvas = tk.Canvas(self, bg="lightgray")
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
+        # Back button
+        btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
+        btn_back.pack(pady=10, side="bottom")
 
-        scrollable_frame.bind(
+        # Scrollable canvas
+        self.canvas = tk.Canvas(self, bg="lightgray")
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        self.scrollable_frame.bind(
             "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
             )
         )
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
 
-        # Load and display account data
-        self.display_ledger(scrollable_frame)
+    def display_ledger(self):
+        # Clear the frame before displaying the ledger
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
 
-        # Back button
-        btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
-        btn_back.pack(pady=10)
-
-    def display_ledger(self, parent):
         account_titles = get_all_accounts()
-        for account_id, account_name, _, borrowing_type, _ in account_titles:
+        for _, account_id, account_name, _, borrowing_type, _ in account_titles:
             journal_entries = get_general(account_id)
             if journal_entries:
                 # Create a label for each account title
-                account_label = tk.Label(parent, text=f"■{account_name}", font=("Helvetica", 14, "bold"), bg="lightgray")
+                account_label = tk.Label(self.scrollable_frame, text=f"■{account_name}", font=("Helvetica", 14, "bold"), bg="lightgray")
                 account_label.pack(anchor="w", padx=10, pady=5)
 
                 # Create TreeView for each account title
-                tree = SortableTreeview(parent, columns=("Date", "Counterparty Account", "Comment", "Debit", "Credit", "Balance"), show='headings')
+                tree = SortableTreeview(self.scrollable_frame, columns=("Date", "Counterparty Account", "Comment", "Debit", "Credit", "Balance"), show='headings')
                 tree.heading("Date", text="日付")
                 tree.heading("Counterparty Account", text="相手科目")
                 tree.heading("Comment", text="コメント")
@@ -75,3 +74,8 @@ class GeneralLedgerPage(tk.Frame):
                     date, counterparty_account, comment, debit, credit = entry
                     balance += (debit - credit) * borrowing_type
                     tree.insert('', 'end', values=(date, counterparty_account, comment, debit, credit, balance))
+
+    def tkraise(self, *args, **kwargs):
+        """ページが表示されたときに読み込む"""
+        self.display_ledger()
+        super().tkraise(*args, **kwargs)

@@ -1,5 +1,12 @@
+import csv
+
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
+import sqlite3
+
+from db.account_titles import get_all_accounts
+from db.journal_entries import get_all_journals
+
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -42,17 +49,47 @@ class StartPage(tk.Frame):
         btn_general_ledger.grid(row=0, column=0, padx=10)
 
     def export_account_titles(self):
-        # Implement export logic here
-        pass
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            rows = get_all_accounts()
+
+            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["id", "name", "category", "borrowing_type", "allocation"])
+                writer.writerows(rows)
 
     def import_account_titles(self):
-        # Implement import logic here
-        pass
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                rows = [tuple(row.values()) for row in reader]
+
+            conn = sqlite3.connect('accounting.db')
+            c = conn.cursor()
+            c.executemany('INSERT INTO account_titles (id, name, category, borrowing_type, allocation) VALUES (?, ?, ?, ?, ?)', rows)
+            conn.commit()
+            conn.close()
 
     def export_journal_entries(self):
-        # Implement export logic here
-        pass
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            rows = get_all_journals()
+
+            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["id", "year", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
+                writer.writerows(rows)
 
     def import_journal_entries(self):
-        # Implement import logic here
-        pass
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                rows = [tuple(row.values()) for row in reader]
+
+            conn = sqlite3.connect('accounting.db')
+            c = conn.cursor()
+            c.executemany('INSERT INTO journal_entries (id, year, date, debit_account_id, credit_account_id, amount, comment) VALUES (?, ?, ?, ?, ?, ?)', rows)
+            conn.commit()
+            conn.close()

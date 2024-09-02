@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import tkinter as tk
 from tkinter import messagebox, ttk
 from datetime import datetime
@@ -20,7 +22,8 @@ class JournalPage(tk.Frame):
         self.current_year = datetime.now().year - 1
 
         # Treeview for displaying journal entries
-        self.tree = SortableTreeview(self, columns=("Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Journal Id", "Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree.column("Journal Id", width=0, stretch=False, minwidth=0)
         self.tree.column("Year", width=0, stretch=False, minwidth=0)
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
@@ -88,16 +91,12 @@ class JournalPage(tk.Frame):
         ttk.Label(parent, text="金額", background="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
         self.entry_amount = ttk.Entry(parent, width=10)
         self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
-        self.entry_amount.bind("<Return>", self.handle_enter_key)
+        self.entry_amount.bind("<Return>", self.add_journal_entry)
 
         # Comment
         ttk.Label(parent, text="コメント", background="lightgray").grid(row=0, column=10, padx=10, pady=5, sticky="e")
         self.entry_comment = ttk.Entry(parent, width=30)
         self.entry_comment.grid(row=0, column=11, padx=10, pady=5, sticky="w")
-
-    def handle_enter_key(self, event):
-        """Enterキーが押されたときの処理"""
-        self.add_journal_entry()
 
     def update_account_menus(self):
         """データベースから勘定科目を読み込み、OptionMenuを更新する"""
@@ -118,17 +117,18 @@ class JournalPage(tk.Frame):
 
     def load_journal_entries(self):
         """データベースから仕訳を読み込んでTreeviewに表示する"""
-        self.tree.delete(*self.tree.get_children())  # Clear existing entries
+        self.tree.delete(*self.tree.get_children())
 
         entries = get_all_journals()
 
         for entry in entries:
-            entry_id, year, date, debit_account, credit_account, amount, comment = entry
-            self.tree.insert('', 'end', iid=entry_id, values=(year, date, debit_account, credit_account, amount, comment))
+            entry_id, journal_id, year, date, debit_account, credit_account, amount, comment = entry
+            self.tree.insert('', 'end', iid=entry_id, values=(journal_id, year, date, debit_account, credit_account, amount, comment))
 
     def add_journal_entry(self):
+        journal_id = str(uuid4())
         journal = self.get_input_journal_entry()
-        add_journal(*journal)
+        add_journal(journal_id, *journal)
         self.load_journal_entries()  # 追加後にリストを更新
 
     def update_journal_entry(self):
@@ -136,11 +136,11 @@ class JournalPage(tk.Frame):
         if not selected_item:
             messagebox.showwarning("選択エラー", "更新する仕訳を選択してください。")
             return
+        values = self.tree.item(selected_item[0], "values")
         
-        iid = selected_item[0]
-
+        journal_id = values[0]
         journal = self.get_input_journal_entry()
-        update_journal(iid, *journal)
+        update_journal(journal_id, *journal)
 
         self.load_journal_entries()
 
@@ -169,9 +169,10 @@ class JournalPage(tk.Frame):
         if not selected_item:
             messagebox.showwarning("選択エラー", "削除する仕訳を選択してください。")
             return
-
-        entry_id = selected_item[0]
-        delete_journal(entry_id)
+        values = self.tree.item(selected_item[0], "values")
+        
+        journal_id = values[0]
+        delete_journal(journal_id)
 
         self.load_journal_entries()  # 削除後にリストを更新
 
@@ -183,21 +184,21 @@ class JournalPage(tk.Frame):
         if selected_item:
             values = self.tree.item(selected_item, "values")
             self.entry_year.delete(0, tk.END)
-            self.entry_year.insert(0, values[0])
+            self.entry_year.insert(0, values[1])
 
-            date = values[1]
+            date = values[2]
             entry_date = "/".join(date.split("-")[1:])
             self.entry_date.delete(0, tk.END)
             self.entry_date.insert(0, entry_date)
 
-            self.debit_account_var.set(values[2])
-            self.credit_account_var.set(values[3])
+            self.debit_account_var.set(values[3])
+            self.credit_account_var.set(values[4])
 
             self.entry_amount.delete(0, tk.END)
-            self.entry_amount.insert(0, values[4])
+            self.entry_amount.insert(0, values[5])
 
             self.entry_comment.delete(0, tk.END)
-            self.entry_comment.insert(0, values[5])
+            self.entry_comment.insert(0, values[6])
 
     def tkraise(self, *args, **kwargs):
         """ページが表示されたときに勘定科目と仕訳を読み込む"""

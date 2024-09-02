@@ -1,3 +1,4 @@
+from uuid import uuid4
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -26,7 +27,8 @@ class AccountPage(tk.Frame):
         tk.Label(self, text="勘定科目の登録", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
         # TreeView to display account titles
-        self.tree = SortableTreeview(self, columns=("Category", "Name", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Account Id", "Category", "Name", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
+        self.tree.column("Account Id", width=0, stretch=False, minwidth=0)
         self.tree.heading("Category", text="カテゴリー")
         self.tree.heading("Name", text="勘定科目名")
         self.tree.heading("BorrowingType", text="借貸区分")
@@ -93,11 +95,12 @@ class AccountPage(tk.Frame):
         self.tree.delete(*self.tree.get_children())  # Clear existing entries
         account_titles = get_all_accounts()
 
-        for entry_id, name, category, borrowing_type, allocation in account_titles:
+        for entry_id, account_id, name, category, borrowing_type, allocation in account_titles:
             category_text = [k for k, v in CATEGORY_OPTIONS.items() if v == category][0]
-            self.tree.insert('', 'end', iid=entry_id, values=(name, category_text, borrowing_type, allocation))
+            self.tree.insert('', 'end', iid=entry_id, values=(account_id, name, category_text, borrowing_type, allocation))
 
     def add_account_title(self):
+        account_id = str(uuid4())
         name = self.entry_name.get()
         category_text = self.category_var.get()
         category = CATEGORY_OPTIONS.get(category_text)
@@ -108,7 +111,7 @@ class AccountPage(tk.Frame):
             messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
             return
 
-        add_account(name, category, borrowing_type, allocation)
+        add_account(account_id, name, category, borrowing_type, allocation)
 
         self.load_account_titles()
 
@@ -117,16 +120,16 @@ class AccountPage(tk.Frame):
         if not selected_item:
             messagebox.showwarning("選択エラー", "更新する勘定科目を選択してください。")
             return
-        
-        iid = selected_item[0]
+        values = self.tree.item(selected_item[0], "values")
 
+        account_id = values[0]
         name = self.entry_name.get()
         category_text = self.category_var.get()
         category = CATEGORY_OPTIONS.get(category_text)
         borrowing_type = int(self.entry_borrowing_type.get())
         allocation = int(self.entry_allocation.get())
 
-        update_account(iid, name, category, borrowing_type, allocation)
+        update_account(account_id, name, category, borrowing_type, allocation)
 
         self.load_account_titles()  # Refresh the list
 
@@ -135,9 +138,10 @@ class AccountPage(tk.Frame):
         if not selected_item:
             messagebox.showwarning("削除エラー", "削除する勘定科目を選択してください。")
             return
+        values = self.tree.item(selected_item[0], "values")
 
-        entry_id = selected_item[0]
-        delete_account(entry_id)
+        account_id = values[0]
+        delete_account(account_id)
 
         self.load_account_titles()  # 削除後にリストを更新
 
@@ -149,16 +153,16 @@ class AccountPage(tk.Frame):
         if selected_item:
             values = self.tree.item(selected_item, "values")
             self.entry_name.delete(0, tk.END)
-            self.entry_name.insert(0, values[0])
+            self.entry_name.insert(0, values[1])
 
-            category = values[1]
+            category = values[2]
             self.category_var.set(category)
 
             self.entry_borrowing_type.delete(0, tk.END)
-            self.entry_borrowing_type.insert(0, values[2])
+            self.entry_borrowing_type.insert(0, values[3])
 
             self.entry_allocation.delete(0, tk.END)
-            self.entry_allocation.insert(0, values[3])
+            self.entry_allocation.insert(0, values[4])
 
 
 def number_to_category(category_num):

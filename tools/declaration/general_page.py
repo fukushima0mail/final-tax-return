@@ -4,6 +4,7 @@ import sqlite3
 
 from db.journal_entries import get_general
 from db.account_titles import get_all_accounts
+from lib.utils import SortableTreeview
 
 
 class GeneralLedgerPage(tk.Frame):
@@ -38,7 +39,7 @@ class GeneralLedgerPage(tk.Frame):
         self.display_ledger(scrollable_frame)
 
         # Back button
-        btn_back = tk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
+        btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 
     def display_ledger(self, parent):
@@ -51,7 +52,7 @@ class GeneralLedgerPage(tk.Frame):
                 account_label.pack(anchor="w", padx=10, pady=5)
 
                 # Create TreeView for each account title
-                tree = ttk.Treeview(parent, columns=("Date", "Counterparty Account", "Comment", "Debit", "Credit", "Balance"), show='headings')
+                tree = SortableTreeview(parent, columns=("Date", "Counterparty Account", "Comment", "Debit", "Credit", "Balance"), show='headings')
                 tree.heading("Date", text="日付")
                 tree.heading("Counterparty Account", text="相手科目")
                 tree.heading("Comment", text="コメント")

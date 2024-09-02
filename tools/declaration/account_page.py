@@ -5,6 +5,7 @@ from db.account_titles import (
     add_account, get_all_accounts,
     update_account, delete_account
 )
+from lib.utils import SortableTreeview
 
 CATEGORY_OPTIONS = {
     "資産": 1,
@@ -25,7 +26,7 @@ class AccountPage(tk.Frame):
         tk.Label(self, text="勘定科目の登録", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
         # TreeView to display account titles
-        self.tree = ttk.Treeview(self, columns=("Category", "Name", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Category", "Name", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
         self.tree.heading("Category", text="カテゴリー")
         self.tree.heading("Name", text="勘定科目名")
         self.tree.heading("BorrowingType", text="借貸区分")
@@ -46,17 +47,17 @@ class AccountPage(tk.Frame):
         button_frame.pack(pady=10)
 
         # Add and delete buttons
-        btn_add = tk.Button(button_frame, text="追加", command=self.add_account_title)
+        btn_add = ttk.Button(button_frame, text="追加", command=self.add_account_title)
         btn_add.pack(side="left", padx=5)
 
-        btn_update = tk.Button(button_frame, text="更新", command=self.update_account_title)
+        btn_update = ttk.Button(button_frame, text="更新", command=self.update_account_title)
         btn_update.pack(side="left", padx=5)
 
-        btn_delete = tk.Button(button_frame, text="削除", command=self.delete_account_title)
+        btn_delete = ttk.Button(button_frame, text="削除", command=self.delete_account_title)
         btn_delete.pack(side="left", padx=5)
 
         # Back button
-        btn_back = tk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
+        btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 
         # Set default size for TreeView

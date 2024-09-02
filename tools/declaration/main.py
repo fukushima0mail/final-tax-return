@@ -1,15 +1,20 @@
 import tkinter as tk
+from tkinter import ttk
 from db.init import init_table
 from start_page import StartPage
 from general_page import GeneralLedgerPage
 from account_page import AccountPage
 from journal_page import JournalPage
 
+
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("青色申告アプリ")
         self.geometry("1200x700")
+
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
 
         self.frames = {}
         for F in (StartPage, AccountPage, JournalPage, GeneralLedgerPage):

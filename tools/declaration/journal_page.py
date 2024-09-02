@@ -4,6 +4,7 @@ from datetime import datetime
 
 from db.journal_entries import add_journal, delete_journal, get_all_journals, update_journal
 from db.account_titles import get_account_names
+from lib.utils import SortableTreeview
 
 class JournalPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -13,13 +14,13 @@ class JournalPage(tk.Frame):
         self.configure(bg="lightgray")
 
         # Title
-        tk.Label(self, text="仕訳の入力", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
+        ttk.Label(self, text="仕訳の入力", font=("Helvetica", 16, "bold"), background="lightgray").pack(pady=10)
 
         # Default year to last year
         self.current_year = datetime.now().year - 1
 
         # Treeview for displaying journal entries
-        self.tree = ttk.Treeview(self, columns=("Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
         self.tree.column("Year", width=0, stretch=False, minwidth=0)
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
@@ -42,17 +43,17 @@ class JournalPage(tk.Frame):
         button_frame.pack(pady=10)
 
         # Add and delete buttons
-        btn_add = tk.Button(button_frame, text="追加", command=self.add_journal_entry)
+        btn_add = ttk.Button(button_frame, text="追加", command=self.add_journal_entry)
         btn_add.pack(side="left", padx=5)
 
-        btn_update = tk.Button(button_frame, text="更新", command=self.update_journal_entry)
+        btn_update = ttk.Button(button_frame, text="更新", command=self.update_journal_entry)
         btn_update.pack(side="left", padx=5)
 
-        btn_delete = tk.Button(button_frame, text="削除", command=self.delete_journal_entry)
+        btn_delete = ttk.Button(button_frame, text="削除", command=self.delete_journal_entry)
         btn_delete.pack(side="left", padx=5)
 
         # Back button
-        btn_back = tk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
+        btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 
         # Set default size for TreeView
@@ -61,37 +62,37 @@ class JournalPage(tk.Frame):
     def create_input_widgets(self, parent):
         """Create input widgets arranged horizontally."""
         # Year
-        tk.Label(parent, text="年度", bg="lightgray").grid(row=0, column=0, padx=10, pady=5, sticky="e")
-        self.entry_year = tk.Entry(parent, width=10)
+        ttk.Label(parent, text="年度", background="lightgray").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        self.entry_year = ttk.Entry(parent, width=10)
         self.entry_year.grid(row=0, column=1, padx=10, pady=5, sticky="w")
         self.entry_year.insert(0, self.current_year)
 
         # Date
-        tk.Label(parent, text="日付 (MM/DD)", bg="lightgray").grid(row=0, column=2, padx=10, pady=5, sticky="e")
-        self.entry_date = tk.Entry(parent, width=10)
+        ttk.Label(parent, text="日付 (MM/DD)", background="lightgray").grid(row=0, column=2, padx=10, pady=5, sticky="e")
+        self.entry_date = ttk.Entry(parent, width=10)
         self.entry_date.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
         # Debit Account
-        tk.Label(parent, text="借方勘定科目", bg="lightgray").grid(row=0, column=4, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="借方勘定科目", background="lightgray").grid(row=0, column=4, padx=10, pady=5, sticky="e")
         self.debit_account_var = tk.StringVar()
         self.debit_account_menu = ttk.OptionMenu(parent, self.debit_account_var, '')
         self.debit_account_menu.grid(row=0, column=5, padx=10, pady=5, sticky="w")
 
         # Credit Account
-        tk.Label(parent, text="貸方勘定科目", bg="lightgray").grid(row=0, column=6, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="貸方勘定科目", background="lightgray").grid(row=0, column=6, padx=10, pady=5, sticky="e")
         self.credit_account_var = tk.StringVar()
         self.credit_account_menu = ttk.OptionMenu(parent, self.credit_account_var, '')
         self.credit_account_menu.grid(row=0, column=7, padx=10, pady=5, sticky="w")
 
         # Amount
-        tk.Label(parent, text="金額", bg="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
-        self.entry_amount = tk.Entry(parent, width=10)
+        ttk.Label(parent, text="金額", background="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
+        self.entry_amount = ttk.Entry(parent, width=10)
         self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
         self.entry_amount.bind("<Return>", self.handle_enter_key)
 
         # Comment
-        tk.Label(parent, text="コメント", bg="lightgray").grid(row=0, column=10, padx=10, pady=5, sticky="e")
-        self.entry_comment = tk.Entry(parent, width=30)
+        ttk.Label(parent, text="コメント", background="lightgray").grid(row=0, column=10, padx=10, pady=5, sticky="e")
+        self.entry_comment = ttk.Entry(parent, width=30)
         self.entry_comment.grid(row=0, column=11, padx=10, pady=5, sticky="w")
 
     def handle_enter_key(self, event):

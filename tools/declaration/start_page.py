@@ -2,6 +2,8 @@ import csv
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
+import os
 
 from db.account_titles import get_export_accounts, import_accounts
 from db.journal_entries import get_export_journals, import_journals
@@ -46,6 +48,21 @@ class StartPage(tk.Frame):
 
         btn_general_ledger = ttk.Button(general_frame, text="総勘定元帳", command=lambda: controller.show_frame("GeneralLedgerPage"))
         btn_general_ledger.grid(row=0, column=0, padx=10)
+        self.load_logo()
+
+    def load_logo(self):
+        current_dir = os.path.dirname(__file__)
+        logo_path = os.path.join(current_dir, 'src', 'title_logo.png')  # パスを組み立てる
+
+        # 画像を開いて、tkinterで表示できる形式に変換
+        image = Image.open(logo_path)
+        image.thumbnail((300, 150), Image.LANCZOS)
+        self.logo = ImageTk.PhotoImage(image)
+
+        # ラベルを作成し、画像を配置
+        logo_label = ttk.Label(self, image=self.logo)
+        logo_label.image = self.logo  # 参照を保持するために必要
+        logo_label.grid(row=0, column=0, pady=20)  # 上下の余白を指定して配置
 
     def export_account_titles(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])

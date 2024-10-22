@@ -164,6 +164,11 @@ class AccountPage(tk.Frame):
             self.entry_allocation.delete(0, tk.END)
             self.entry_allocation.insert(0, values[4])
 
+    def tkraise(self, *args, **kwargs):
+        """ページが表示されたときに読み込む"""
+        self.load_account_titles()
+        super().tkraise(*args, **kwargs)
+
 
 def number_to_category(category_num):
     for key, value in CATEGORY_OPTIONS.items():

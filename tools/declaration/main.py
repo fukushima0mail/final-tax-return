@@ -29,6 +29,7 @@ class Application(tk.Tk):
         frame = self.frames[page_name]
         frame.tkraise()
 
+
 if __name__ == "__main__":
     init_table()
     app = Application()

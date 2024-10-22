@@ -1,11 +1,10 @@
 import csv
 
 import tkinter as tk
-from tkinter import ttk, filedialog
-import sqlite3
+from tkinter import ttk, filedialog, messagebox
 
-from db.account_titles import get_all_accounts
-from db.journal_entries import get_all_journals
+from db.account_titles import get_export_accounts, import_accounts
+from db.journal_entries import get_export_journals, import_journals
 
 
 class StartPage(tk.Frame):
@@ -51,11 +50,10 @@ class StartPage(tk.Frame):
     def export_account_titles(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
         if file_path:
-            rows = get_all_accounts()
-
+            rows = get_export_accounts()
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["id", "name", "category", "borrowing_type", "allocation"])
+                writer.writerow(["account_id", "name", "category", "borrowing_type", "allocation"])
                 writer.writerows(rows)
 
     def import_account_titles(self):
@@ -65,20 +63,19 @@ class StartPage(tk.Frame):
                 reader = csv.DictReader(file)
                 rows = [tuple(row.values()) for row in reader]
 
-            conn = sqlite3.connect('accounting.db')
-            c = conn.cursor()
-            c.executemany('INSERT INTO account_titles (id, name, category, borrowing_type, allocation) VALUES (?, ?, ?, ?, ?)', rows)
-            conn.commit()
-            conn.close()
+            # 確認ダイアログを表示
+            if messagebox.askyesno("確認", "入力済みの勘定科目が消えますが問題ないですか？"):
+                import_accounts(rows)
+            
 
     def export_journal_entries(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
         if file_path:
-            rows = get_all_journals()
+            rows = get_export_journals()
 
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["id", "year", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
+                writer.writerow(["journal_id", "year", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
                 writer.writerows(rows)
 
     def import_journal_entries(self):
@@ -88,8 +85,6 @@ class StartPage(tk.Frame):
                 reader = csv.DictReader(file)
                 rows = [tuple(row.values()) for row in reader]
 
-            conn = sqlite3.connect('accounting.db')
-            c = conn.cursor()
-            c.executemany('INSERT INTO journal_entries (id, year, date, debit_account_id, credit_account_id, amount, comment) VALUES (?, ?, ?, ?, ?, ?)', rows)
-            conn.commit()
-            conn.close()
+            # 確認ダイアログを表示
+            if messagebox.askyesno("確認", "入力済みの仕訳が消えますが問題ないですか？"):
+                import_journals(rows)

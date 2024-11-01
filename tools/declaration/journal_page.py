@@ -1,8 +1,5 @@
-from uuid import uuid4
-
 import tkinter as tk
 from tkinter import messagebox, ttk
-from datetime import datetime
 
 from db.journal_entries import add_journal, delete_journal, get_all_journals, update_journal
 from db.account_titles import get_account_names
@@ -18,13 +15,9 @@ class JournalPage(tk.Frame):
         # Title
         ttk.Label(self, text="仕訳の入力", font=("Helvetica", 16, "bold"), background="lightgray").pack(pady=10)
 
-        # Default year to last year
-        self.current_year = datetime.now().year - 1
-
         # Treeview for displaying journal entries
-        self.tree = SortableTreeview(self, columns=("Journal Id", "Year", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Journal Id", "Date", "Debit Account", "Credit Account", "Amount", "Comment"), show='headings', selectmode='browse')
         self.tree.column("Journal Id", width=0, stretch=False, minwidth=0)
-        self.tree.column("Year", width=0, stretch=False, minwidth=0)
         self.tree.heading("Date", text="日付")
         self.tree.heading("Debit Account", text="借方勘定科目")
         self.tree.heading("Credit Account", text="貸方勘定科目")
@@ -64,39 +57,33 @@ class JournalPage(tk.Frame):
 
     def create_input_widgets(self, parent):
         """Create input widgets arranged horizontally."""
-        # Year
-        ttk.Label(parent, text="年度", background="lightgray").grid(row=0, column=0, padx=10, pady=5, sticky="e")
-        self.entry_year = ttk.Entry(parent, width=10)
-        self.entry_year.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        self.entry_year.insert(0, self.current_year)
-
         # Date
-        ttk.Label(parent, text="日付 (MM/DD)", background="lightgray").grid(row=0, column=2, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="日付 (MM/DD)", background="lightgray").grid(row=0, column=0, padx=10, pady=5, sticky="e")
         self.entry_date = ttk.Entry(parent, width=10)
-        self.entry_date.grid(row=0, column=3, padx=10, pady=5, sticky="w")
+        self.entry_date.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
         # Debit Account
-        ttk.Label(parent, text="借方勘定科目", background="lightgray").grid(row=0, column=4, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="借方勘定科目", background="lightgray").grid(row=0, column=2, padx=10, pady=5, sticky="e")
         self.debit_account_var = tk.StringVar()
         self.debit_account_menu = ttk.OptionMenu(parent, self.debit_account_var, '')
-        self.debit_account_menu.grid(row=0, column=5, padx=10, pady=5, sticky="w")
+        self.debit_account_menu.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
         # Credit Account
-        ttk.Label(parent, text="貸方勘定科目", background="lightgray").grid(row=0, column=6, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="貸方勘定科目", background="lightgray").grid(row=0, column=4, padx=10, pady=5, sticky="e")
         self.credit_account_var = tk.StringVar()
         self.credit_account_menu = ttk.OptionMenu(parent, self.credit_account_var, '')
-        self.credit_account_menu.grid(row=0, column=7, padx=10, pady=5, sticky="w")
+        self.credit_account_menu.grid(row=0, column=5, padx=10, pady=5, sticky="w")
 
         # Amount
-        ttk.Label(parent, text="金額", background="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="金額", background="lightgray").grid(row=0, column=6, padx=10, pady=5, sticky="e")
         self.entry_amount = ttk.Entry(parent, width=10)
-        self.entry_amount.grid(row=0, column=9, padx=10, pady=5, sticky="w")
+        self.entry_amount.grid(row=0, column=7, padx=10, pady=5, sticky="w")
         self.entry_amount.bind("<Return>", self.add_journal_entry)
 
         # Comment
-        ttk.Label(parent, text="コメント", background="lightgray").grid(row=0, column=10, padx=10, pady=5, sticky="e")
+        ttk.Label(parent, text="コメント", background="lightgray").grid(row=0, column=8, padx=10, pady=5, sticky="e")
         self.entry_comment = ttk.Entry(parent, width=30)
-        self.entry_comment.grid(row=0, column=11, padx=10, pady=5, sticky="w")
+        self.entry_comment.grid(row=0, column=9, padx=10, pady=5, sticky="w")
 
     def update_account_menus(self):
         """データベースから勘定科目を読み込み、OptionMenuを更新する"""
@@ -122,13 +109,12 @@ class JournalPage(tk.Frame):
         entries = get_all_journals()
 
         for entry in entries:
-            entry_id, journal_id, year, date, debit_account, credit_account, amount, comment = entry
-            self.tree.insert('', 'end', iid=entry_id, values=(journal_id, year, date, debit_account, credit_account, amount, comment))
+            entry_id, journal_id, date, debit_account, credit_account, amount, comment = entry
+            self.tree.insert('', 'end', iid=entry_id, values=(journal_id, date, debit_account, credit_account, amount, comment))
 
     def add_journal_entry(self):
-        journal_id = str(uuid4())
         journal = self.get_input_journal_entry()
-        add_journal(journal_id, *journal)
+        add_journal(*journal)
         self.load_journal_entries()  # 追加後にリストを更新
 
     def update_journal_entry(self):
@@ -145,24 +131,20 @@ class JournalPage(tk.Frame):
         self.load_journal_entries()
 
     def get_input_journal_entry(self):
-        year = int(self.entry_year.get())
         date_text = self.entry_date.get()
         debit_account_name = self.debit_account_var.get()
         credit_account_name = self.credit_account_var.get()
         amount = int(self.entry_amount.get())
         comment = self.entry_comment.get()
 
-        if not year or not date_text or not debit_account_name or not credit_account_name or not amount:
+        if not date_text or not debit_account_name or not credit_account_name or not amount:
             messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
             return
 
         month, day = map(int, date_text.split('/'))
-        if 4 <= month <= 12:
-            date = f"{year}-{month:02d}-{day:02d}"
-        else:
-            date = f"{year + 1}-{month:02d}-{day:02d}"
+        date = f"{month:02d}-{day:02d}"
 
-        return (year, date, debit_account_name, credit_account_name, amount, comment)
+        return (date, debit_account_name, credit_account_name, amount, comment)
 
     def delete_journal_entry(self):
         selected_item = self.tree.selection()
@@ -183,22 +165,19 @@ class JournalPage(tk.Frame):
         selected_item = selection[0]
         if selected_item:
             values = self.tree.item(selected_item, "values")
-            self.entry_year.delete(0, tk.END)
-            self.entry_year.insert(0, values[1])
-
-            date = values[2]
-            entry_date = "/".join(date.split("-")[1:])
+            date = values[1]
+            entry_date = "/".join(date.split("-"))
             self.entry_date.delete(0, tk.END)
             self.entry_date.insert(0, entry_date)
 
-            self.debit_account_var.set(values[3])
-            self.credit_account_var.set(values[4])
+            self.debit_account_var.set(values[2])
+            self.credit_account_var.set(values[3])
 
             self.entry_amount.delete(0, tk.END)
-            self.entry_amount.insert(0, values[5])
+            self.entry_amount.insert(0, values[4])
 
             self.entry_comment.delete(0, tk.END)
-            self.entry_comment.insert(0, values[6])
+            self.entry_comment.insert(0, values[5])
 
     def tkraise(self, *args, **kwargs):
         """ページが表示されたときに勘定科目と仕訳を読み込む"""

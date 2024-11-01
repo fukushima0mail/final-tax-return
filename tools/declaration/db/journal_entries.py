@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from .connection import DBConnection
 
 def create_journal_entries_table():
@@ -6,7 +8,6 @@ def create_journal_entries_table():
             CREATE TABLE IF NOT EXISTS journal_entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 journal_id TEXT NOT NULL,
-                year INTEGER NOT NULL,
                 date TEXT NOT NULL,
                 debit_account_id INTEGER NOT NULL,
                 credit_account_id INTEGER NOT NULL,
@@ -15,7 +16,7 @@ def create_journal_entries_table():
             )
         ''')
 
-def add_journal(journal_id, year, date, debit_account_name, credit_account_name, amount, comment):
+def add_journal(date, debit_account_name, credit_account_name, amount, comment):
     with DBConnection() as c:
         c.execute('SELECT account_id FROM account_titles WHERE name = ?', (debit_account_name,))
         debit_account_id = c.fetchone()[0]
@@ -24,11 +25,11 @@ def add_journal(journal_id, year, date, debit_account_name, credit_account_name,
         credit_account_id = c.fetchone()[0]
 
         c.execute('''
-            INSERT INTO journal_entries (journal_id, year, date, debit_account_id, credit_account_id, amount, comment)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (journal_id, year, date, debit_account_id, credit_account_id, amount, comment))
+            INSERT INTO journal_entries (journal_id, date, debit_account_id, credit_account_id, amount, comment)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (str(uuid4()), date, debit_account_id, credit_account_id, amount, comment))
 
-def update_journal(journal_id, year, date, debit_account_name, credit_account_name, amount, comment):
+def update_journal(journal_id, date, debit_account_name, credit_account_name, amount, comment):
     with DBConnection() as c:
         c.execute('SELECT account_id FROM account_titles WHERE name = ?', (debit_account_name,))
         debit_account_id = c.fetchone()[0]
@@ -38,14 +39,14 @@ def update_journal(journal_id, year, date, debit_account_name, credit_account_na
 
         c.execute('''
             UPDATE journal_entries
-            SET 'year' = ?, date = ?, debit_account_id = ?, credit_account_id = ?, amount = ?, comment = ?
+            SET date = ?, debit_account_id = ?, credit_account_id = ?, amount = ?, comment = ?
             WHERE journal_id = ?
-        ''', (year, date, debit_account_id, credit_account_id, amount, comment, journal_id))
+        ''', (date, debit_account_id, credit_account_id, amount, comment, journal_id))
 
 def get_export_journals():
     with DBConnection() as c:
         c.execute('''
-            SELECT journal_id, year, date, debit_account_id, credit_account_id, amount, comment
+            SELECT journal_id, date, debit_account_id, credit_account_id, amount, comment
             FROM journal_entries
         ''')
         rows = c.fetchall()
@@ -54,7 +55,7 @@ def get_export_journals():
 def get_all_journals():
     with DBConnection() as c:
         c.execute('''
-            SELECT j.id, j.journal_id, j.year, j.date, d.name, c.name, j.amount, j.comment
+            SELECT j.id, j.journal_id, j.date, d.name, c.name, j.amount, j.comment
             FROM journal_entries j
             JOIN account_titles d ON j.debit_account_id = d.account_id
             JOIN account_titles c ON j.credit_account_id = c.account_id
@@ -96,4 +97,4 @@ def get_general(account_id):
 def import_journals(rows):
     with DBConnection() as c:
         c.execute('DELETE FROM journal_entries')
-        c.executemany('INSERT INTO journal_entries (journal_id, year, date, debit_account_id, credit_account_id, amount, comment) VALUES (?, ?, ?, ?, ?, ?, ?)', rows)
+        c.executemany('INSERT INTO journal_entries (journal_id, date, debit_account_id, credit_account_id, amount, comment) VALUES (?, ?, ?, ?, ?, ?, ?)', rows)

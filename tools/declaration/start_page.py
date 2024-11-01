@@ -92,7 +92,7 @@ class StartPage(tk.Frame):
 
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["journal_id", "year", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
+                writer.writerow(["journal_id", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
                 writer.writerows(rows)
 
     def import_journal_entries(self):

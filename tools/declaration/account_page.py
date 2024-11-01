@@ -1,4 +1,3 @@
-from uuid import uuid4
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -27,7 +26,7 @@ class AccountPage(tk.Frame):
         tk.Label(self, text="勘定科目の登録", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
         # TreeView to display account titles
-        self.tree = SortableTreeview(self, columns=("Account Id", "Category", "Name", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
+        self.tree = SortableTreeview(self, columns=("Account Id", "Name", "Category", "BorrowingType", "Allocation"), show='headings', selectmode='browse')
         self.tree.column("Account Id", width=0, stretch=False, minwidth=0)
         self.tree.heading("Category", text="カテゴリー")
         self.tree.heading("Name", text="勘定科目名")
@@ -100,7 +99,6 @@ class AccountPage(tk.Frame):
             self.tree.insert('', 'end', iid=entry_id, values=(account_id, name, category_text, borrowing_type, allocation))
 
     def add_account_title(self):
-        account_id = str(uuid4())
         name = self.entry_name.get()
         category_text = self.category_var.get()
         category = CATEGORY_OPTIONS.get(category_text)
@@ -111,7 +109,7 @@ class AccountPage(tk.Frame):
             messagebox.showerror("入力エラー", "すべてのフィールドを入力してください。")
             return
 
-        add_account(account_id, name, category, borrowing_type, allocation)
+        add_account(name, category, borrowing_type, allocation)
 
         self.load_account_titles()
 

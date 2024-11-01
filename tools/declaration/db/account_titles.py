@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from .connection import DBConnection
 
 def create_account_titles_table():
@@ -13,12 +15,12 @@ def create_account_titles_table():
             )
         ''')
 
-def add_account(account_id, name, category, borrowing_type, allocation):
+def add_account(name, category, borrowing_type, allocation):
     with DBConnection() as c:
         c.execute('''
             INSERT INTO account_titles (account_id, name, category, borrowing_type, allocation)
             VALUES (?, ?, ?, ?, ?)
-        ''', (account_id, name, category, borrowing_type, allocation))
+        ''', (str(uuid4()), name, category, borrowing_type, allocation))
 
 def get_export_accounts():
     with DBConnection() as c:

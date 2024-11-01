@@ -44,6 +44,7 @@ class GeneralLedgerPage(tk.Frame):
 
         account_titles = get_all_accounts()
         for _, account_id, account_name, _, borrowing_type, allocation in account_titles:
+            # TODO: 期首値が総勘定元帳に反映されるようにする
             journal_entries = get_general(account_id)
             if journal_entries:
                 # Create a label for each account title

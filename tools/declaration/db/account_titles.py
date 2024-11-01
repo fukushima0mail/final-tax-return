@@ -2,6 +2,16 @@ from uuid import uuid4
 
 from .connection import DBConnection
 
+
+CATEGORY_OPTIONS = {
+    "資産": 1,
+    "負債": 2,
+    "純資産": 3,
+    "収益": 4,
+    "費用": 5
+}
+
+
 def create_account_titles_table():
     with DBConnection() as c:
         c.execute('''
@@ -33,6 +43,12 @@ def get_all_accounts():
         c.execute('SELECT * FROM account_titles')
         rows = c.fetchall()
     return rows
+
+def get_opening_balance_account():
+    with DBConnection() as c:
+        c.execute('SELECT account_id, name, category FROM account_titles WHERE category in (1, 2)')
+        rows = c.fetchall()
+    return [(account_id, name, {v: k for k, v in CATEGORY_OPTIONS.items()}[category]) for account_id, name, category in rows]
 
 def get_account_names():
     with DBConnection() as c:

@@ -2,9 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 from db.init import init_table
 from start_page import StartPage
-from general_page import GeneralLedgerPage
 from account_page import AccountPage
+from opening_balance_page import OpeningBalancePage
 from journal_page import JournalPage
+from general_page import GeneralLedgerPage
 
 
 class Application(tk.Tk):
@@ -17,7 +18,7 @@ class Application(tk.Tk):
         self.style.theme_use('clam')
 
         self.frames = {}
-        for F in (StartPage, AccountPage, JournalPage, GeneralLedgerPage):
+        for F in (StartPage, AccountPage, OpeningBalancePage, JournalPage, GeneralLedgerPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame

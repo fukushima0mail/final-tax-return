@@ -9,8 +9,8 @@ def create_journal_entries_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 journal_id TEXT NOT NULL,
                 date TEXT NOT NULL,
-                debit_account_id INTEGER NOT NULL,
-                credit_account_id INTEGER NOT NULL,
+                debit_account_id INTEGER,
+                credit_account_id INTEGER,
                 amount INTEGER NOT NULL,
                 comment TEXT
             )
@@ -29,6 +29,13 @@ def add_journal(date, debit_account_name, credit_account_name, amount, comment):
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (str(uuid4()), date, debit_account_id, credit_account_id, amount, comment))
 
+def add_opening_balance_journal(debit_account_id, amount):
+    with DBConnection() as c:
+        c.execute('''
+            INSERT INTO journal_entries (journal_id, date, debit_account_id, amount, comment)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (str(uuid4()), "01-01", debit_account_id, amount, "期首値"))
+
 def update_journal(journal_id, date, debit_account_name, credit_account_name, amount, comment):
     with DBConnection() as c:
         c.execute('SELECT account_id FROM account_titles WHERE name = ?', (debit_account_name,))
@@ -42,6 +49,14 @@ def update_journal(journal_id, date, debit_account_name, credit_account_name, am
             SET date = ?, debit_account_id = ?, credit_account_id = ?, amount = ?, comment = ?
             WHERE journal_id = ?
         ''', (date, debit_account_id, credit_account_id, amount, comment, journal_id))
+
+def update_opening_balance_journal(journal_id, debit_account_id, amount):
+    with DBConnection() as c:
+        c.execute('''
+            UPDATE journal_entries
+            SET debit_account_id = ?, amount = ?
+            WHERE journal_id = ?
+        ''', (debit_account_id, amount, journal_id))
 
 def get_export_journals():
     with DBConnection() as c:
@@ -59,7 +74,19 @@ def get_all_journals():
             FROM journal_entries j
             JOIN account_titles d ON j.debit_account_id = d.account_id
             JOIN account_titles c ON j.credit_account_id = c.account_id
+            WHERE credit_account_id is not null
         ''')
+        rows = c.fetchall()
+    return rows
+
+def get_opening_balance_journal(account_id):
+    with DBConnection() as c:
+        c.execute('''
+            SELECT journal_id, amount
+            FROM journal_entries
+            WHERE debit_account_id = ? AND credit_account_id is null
+        ''', (account_id,))
+        
         rows = c.fetchall()
     return rows
 

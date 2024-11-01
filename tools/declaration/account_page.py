@@ -2,18 +2,14 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from db.account_titles import (
-    add_account, get_all_accounts,
-    update_account, delete_account
+    CATEGORY_OPTIONS,
+    add_account,
+    get_all_accounts,
+    update_account,
+    delete_account
 )
 from lib.utils import SortableTreeview
 
-CATEGORY_OPTIONS = {
-    "資産": 1,
-    "負債": 2,
-    "純資産": 3,
-    "収益": 4,
-    "費用": 5
-}
 
 class AccountPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -87,7 +83,7 @@ class AccountPage(tk.Frame):
         # Allocation (0-100)
         tk.Label(parent, text="按分 (%)", bg="lightgray").grid(row=0, column=6, padx=10, pady=5, sticky="e")
         self.entry_allocation = tk.Entry(parent, width=10)
-        self.entry_allocation.grid(row=0, column=6, padx=10, pady=5, sticky="w")
+        self.entry_allocation.grid(row=0, column=7, padx=10, pady=5, sticky="w")
 
     def load_account_titles(self):
         """データベースから勘定科目を読み込んでリストボックスに表示する"""

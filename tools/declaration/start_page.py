@@ -29,9 +29,16 @@ class StartPage(tk.Frame):
         btn_import_account_titles = ttk.Button(account_frame, text="import", command=self.import_account_titles)
         btn_import_account_titles.grid(row=0, column=2, padx=10)
 
+        # Frame for Opening Balance Section
+        opening_balance_frame = tk.Frame(self)
+        opening_balance_frame.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+
+        btn_opening_balance = ttk.Button(opening_balance_frame, text="期首値の入力", command=lambda: controller.show_frame("OpeningBalancePage"))
+        btn_opening_balance.grid(row=0, column=0, padx=10)
+
         # Frame for Journal Section
         journal_frame = tk.Frame(self)
-        journal_frame.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        journal_frame.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 
         btn_journal = ttk.Button(journal_frame, text="仕訳の入力", command=lambda: controller.show_frame("JournalPage"))
         btn_journal.grid(row=0, column=0, padx=10)
@@ -44,7 +51,7 @@ class StartPage(tk.Frame):
 
         # Frame for General Section
         general_frame = tk.Frame(self)
-        general_frame.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+        general_frame.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
         btn_general_ledger = ttk.Button(general_frame, text="総勘定元帳", command=lambda: controller.show_frame("GeneralLedgerPage"))
         btn_general_ledger.grid(row=0, column=0, padx=10)

@@ -100,8 +100,8 @@ def get_general(account_id):
             SELECT
                 j.date,
                 CASE 
-                    WHEN j.debit_account_id = ? THEN ac_credit.name
-                    ELSE ac_debit.name
+                    WHEN j.debit_account_id = ? THEN COALESCE(ac_credit.name, '')
+                    ELSE COALESCE(ac_debit.name, '')
                 END as counterparty_account,
                 j.comment,
                 CASE 
@@ -113,8 +113,8 @@ def get_general(account_id):
                     ELSE 0
                 END as credit
             FROM journal_entries j
-            JOIN account_titles ac_debit ON j.debit_account_id = ac_debit.account_id
-            JOIN account_titles ac_credit ON j.credit_account_id = ac_credit.account_id
+            LEFT JOIN account_titles ac_debit ON j.debit_account_id = ac_debit.account_id
+            LEFT JOIN account_titles ac_credit ON j.credit_account_id = ac_credit.account_id
             WHERE j.debit_account_id = ? OR j.credit_account_id = ?
             ORDER BY j.date
         ''', (account_id, account_id, account_id, account_id, account_id))

@@ -50,6 +50,28 @@ def get_opening_balance_account():
         rows = c.fetchall()
     return [(account_id, name, {v: k for k, v in CATEGORY_OPTIONS.items()}[category]) for account_id, name, category in rows]
 
+def get_balance():
+    with DBConnection() as c:
+        c.execute('''
+            SELECT
+                at.name,
+                at.category,
+                at.allocation,
+                at.borrowing_type,
+                COALESCE(SUM(CASE WHEN j.debit_account_id = at.account_id THEN j.amount ELSE 0 END), 0) AS debit_total,
+                COALESCE(SUM(CASE WHEN j.credit_account_id = at.account_id THEN j.amount ELSE 0 END), 0) AS credit_total
+            FROM
+                account_titles at
+            LEFT JOIN
+                journal_entries j
+            ON
+                at.account_id = j.debit_account_id OR at.account_id = j.credit_account_id
+            GROUP BY
+                at.account_id, at.name, at.category, at.allocation, at.borrowing_type
+            ''')
+        rows = c.fetchall()
+    return rows
+
 def get_account_names():
     with DBConnection() as c:
         c.execute('SELECT name FROM account_titles')

@@ -60,7 +60,7 @@ class StartPage(tk.Frame):
         balance_frame = tk.Frame(self)
         balance_frame.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
-        btn_balance_sheet = ttk.Button(balance_frame, text="貸借対照表", command=lambda: controller.show_frame("BalanceSheetPage"))
+        btn_balance_sheet = ttk.Button(balance_frame, text="損益計算書", command=lambda: controller.show_frame("PLPage"))
         btn_balance_sheet.grid(row=0, column=0, padx=10)
 
         self.load_logo()

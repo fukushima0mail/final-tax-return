@@ -12,7 +12,6 @@ class JournalPage(tk.Frame):
 
         self.configure(bg="lightgray")
 
-        # Title
         ttk.Label(self, text="仕訳の入力", font=("Helvetica", 16, "bold"), background="lightgray").pack(pady=10)
 
         # Treeview for displaying journal entries
@@ -38,7 +37,6 @@ class JournalPage(tk.Frame):
         button_frame = tk.Frame(self, bg="lightgray")
         button_frame.pack(pady=10)
 
-        # Add and delete buttons
         btn_add = ttk.Button(button_frame, text="追加", command=self.add_journal_entry)
         btn_add.pack(side="left", padx=5)
 
@@ -48,7 +46,6 @@ class JournalPage(tk.Frame):
         btn_delete = ttk.Button(button_frame, text="削除", command=self.delete_journal_entry)
         btn_delete.pack(side="left", padx=5)
 
-        # Back button
         btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 

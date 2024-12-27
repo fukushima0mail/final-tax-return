@@ -18,7 +18,6 @@ class AccountPage(tk.Frame):
 
         self.configure(bg="lightgray")
 
-        # Title
         tk.Label(self, text="勘定科目の登録", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
         # TreeView to display account titles
@@ -43,7 +42,6 @@ class AccountPage(tk.Frame):
         button_frame = tk.Frame(self, bg="lightgray")
         button_frame.pack(pady=10)
 
-        # Add and delete buttons
         btn_add = ttk.Button(button_frame, text="追加", command=self.add_account_title)
         btn_add.pack(side="left", padx=5)
 
@@ -53,7 +51,6 @@ class AccountPage(tk.Frame):
         btn_delete = ttk.Button(button_frame, text="削除", command=self.delete_account_title)
         btn_delete.pack(side="left", padx=5)
 
-        # Back button
         btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 

@@ -12,10 +12,8 @@ class GeneralLedgerPage(tk.Frame):
 
         self.configure(bg="lightgray")
 
-        # Title
         tk.Label(self, text="総勘定元帳", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
-        # Back button
         btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10, side="bottom")
 

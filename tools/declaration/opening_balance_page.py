@@ -11,7 +11,6 @@ class OpeningBalancePage(tk.Frame):
 
         self.configure(bg="lightgray")
 
-        # Title
         tk.Label(self, text="期首値入力", font=("Helvetica", 16, "bold"), bg="lightgray").pack(pady=10)
 
         # Scrollable canvas
@@ -33,11 +32,9 @@ class OpeningBalancePage(tk.Frame):
         # Dictionary to hold input fields for balances
         self.balance_entries = {}
 
-        # Back button
         btn_back = ttk.Button(self, text="戻る", command=lambda: controller.show_frame("StartPage"))
         btn_back.pack(pady=10)
 
-        # Save button
         btn_save = ttk.Button(self, text="保存", command=self.save_balances)
         btn_save.pack(pady=10)
 

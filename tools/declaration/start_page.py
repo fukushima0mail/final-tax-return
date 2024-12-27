@@ -75,7 +75,7 @@ class StartPage(tk.Frame):
 
     def load_logo(self):
         current_dir = os.path.dirname(__file__)
-        logo_path = os.path.join(current_dir, 'src', 'title_logo.png')  # パスを組み立てる
+        logo_path = os.path.join(current_dir, 'src', 'title_logo.png')
 
         # 画像を開いて、tkinterで表示できる形式に変換
         image = Image.open(logo_path)
@@ -85,7 +85,7 @@ class StartPage(tk.Frame):
         # ラベルを作成し、画像を配置
         logo_label = ttk.Label(self, image=self.logo)
         logo_label.image = self.logo  # 参照を保持するために必要
-        logo_label.grid(row=0, column=0, pady=20)  # 上下の余白を指定して配置
+        logo_label.grid(row=0, column=0, pady=20)
 
     def export_account_titles(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
@@ -103,7 +103,6 @@ class StartPage(tk.Frame):
                 reader = csv.DictReader(file)
                 rows = [tuple(row.values()) for row in reader]
 
-            # 確認ダイアログを表示
             if messagebox.askyesno("確認", "入力済みの勘定科目が消えますが問題ないですか？"):
                 import_accounts(rows)
             
@@ -125,6 +124,5 @@ class StartPage(tk.Frame):
                 reader = csv.DictReader(file)
                 rows = [tuple(row.values()) for row in reader]
 
-            # 確認ダイアログを表示
             if messagebox.askyesno("確認", "入力済みの仕訳が消えますが問題ないですか？"):
                 import_journals(rows)

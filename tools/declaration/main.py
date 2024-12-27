@@ -20,7 +20,7 @@ class Application(tk.Tk):
         self.style.theme_use('clam')
 
         self.frames = {}
-        for F in (StartPage, AccountPage, OpeningBalancePage, JournalPage, GeneralLedgerPage, PLPage):
+        for F in (StartPage, AccountPage, OpeningBalancePage, JournalPage, GeneralLedgerPage, PLPage, BalanceSheetPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame

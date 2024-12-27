@@ -56,11 +56,19 @@ class StartPage(tk.Frame):
         btn_general_ledger = ttk.Button(general_frame, text="総勘定元帳", command=lambda: controller.show_frame("GeneralLedgerPage"))
         btn_general_ledger.grid(row=0, column=0, padx=10)
 
-        # Frame for Balance Section
-        balance_frame = tk.Frame(self)
-        balance_frame.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        # Frame for PL Section
+        pl_frame = tk.Frame(self)
+        pl_frame.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
-        btn_balance_sheet = ttk.Button(balance_frame, text="損益計算書", command=lambda: controller.show_frame("PLPage"))
+        btn_pl = ttk.Button(pl_frame, text="損益計算書", command=lambda: controller.show_frame("PLPage"))
+        btn_pl.grid(row=0, column=0, padx=10)
+
+        # TODO: balance sheetは仮の状態となっている
+        # Frame for balance Section
+        balance_frame = tk.Frame(self)
+        balance_frame.grid(row=6, column=0, padx=10, pady=10, sticky="w")
+
+        btn_balance_sheet = ttk.Button(balance_frame, text="貸借対照表", command=lambda: controller.show_frame("BalanceSheetPage"))
         btn_balance_sheet.grid(row=0, column=0, padx=10)
 
         self.load_logo()

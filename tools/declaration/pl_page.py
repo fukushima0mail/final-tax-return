@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from db.account_titles import get_pl
+from lib.data import get_pl_data
 
 
 class PLPage(tk.Frame):
@@ -26,39 +26,26 @@ class PLPage(tk.Frame):
     def calculate_pl(self):
         """損益計算書を計算して表示する"""
         self.tree.delete(*self.tree.get_children())
-        accounts_pl = get_pl()
+        pl_data = get_pl_data()
 
         # Category 4: 収益
-        category_4_accounts = [a for a in accounts_pl if a[1] == 4]
-        category_4_total = 0
-        for account in category_4_accounts:
-            name, _, allocation, borrowing_type, debit_total, credit_total = account
-            total = round((debit_total - credit_total) * allocation / 100 * borrowing_type)
-            category_4_total += total
-            self.tree.insert("", "end", values=("収益", name, f"{total:,}"))
-        self.tree.insert("", "end", values=("", "合計", f"{category_4_total:,}"))
+        for p in pl_data["profits"]:
+            self.tree.insert("", "end", values=("収益", p["name"], f"{p['total']:,}"))
+        self.tree.insert("", "end", values=("", "合計", f"{sum([p['total'] for p in pl_data['profits']]):,}"))
         self.tree.insert("", "end", values=("", "", ""))
 
         # Category 5: 費用
-        category_5_accounts = [a for a in accounts_pl if a[1] == 5]
-        category_5_total = 0
-        for account in category_5_accounts:
-            name, _, allocation, borrowing_type, debit_total, credit_total = account
-            total = round((debit_total - credit_total) * allocation / 100 * borrowing_type)
-            category_5_total += total
-            self.tree.insert("", "end", values=("費用", name, f"{total:,}"))
-        self.tree.insert("", "end", values=("", "合計", f"{category_5_total:,}"))
+        for l in pl_data["losses"]:
+            self.tree.insert("", "end", values=("費用", l["name"], f"{l['total']:,}"))
+        self.tree.insert("", "end", values=("", "合計", f"{sum([l['total'] for l in pl_data['losses']]):,}"))
         self.tree.insert("", "end", values=("", "", ""))
 
         # 差引金額
-        net = category_4_total - category_5_total
-        self.tree.insert("", "end", values=("差引金額", "", f"{net:,}"))
+        self.tree.insert("", "end", values=("差引金額", "", f"{pl_data['net']:,}"))
 
         # 所得金額
-        special_deduction = 650000
-        self.tree.insert("", "end", values=("青色申告特別控除額", "", f"{special_deduction:,}"))
-        income_amount = max(0, net - special_deduction)
-        self.tree.insert("", "end", values=("所得金額 (特別控除後)", "", f"{income_amount:,}"))
+        self.tree.insert("", "end", values=("青色申告特別控除額", "", f"{pl_data['special_deduction']:,}"))
+        self.tree.insert("", "end", values=("所得金額 (特別控除後)", "", f"{pl_data['income_amount']:,}"))
 
     def tkraise(self, *args, **kwargs):
         """ページが表示されたときに読み込む"""

@@ -41,7 +41,7 @@ class GeneralLedgerPage(tk.Frame):
             widget.destroy()
 
         account_titles = get_all_accounts()
-        for _, account_id, account_name, _, borrowing_type, allocation in account_titles:
+        for _, account_id, account_name, category, borrowing_type, allocation in account_titles:
             journal_entries = get_general(account_id)
             if journal_entries:
                 # Create a label for each account title
@@ -73,7 +73,8 @@ class GeneralLedgerPage(tk.Frame):
                     balance += (debit - credit) * borrowing_type
                     tree.insert('', 'end', values=(date, counterparty_account, comment, debit, credit, balance))
                 
-                if balance and allocation != 100:
+                # 負債科目のみ、必要に応じて事業主貸が発生
+                if balance and category == 5 and allocation != 100:
                     adjusted_amount = round(balance * ((100 - allocation) / 100))
                     balance -= adjusted_amount * borrowing_type
                     tree.insert('', 'end', values=('12-31', '事業主貸', '按分の個人分', 0, adjusted_amount, balance))

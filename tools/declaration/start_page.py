@@ -93,7 +93,7 @@ class StartPage(tk.Frame):
             rows = get_export_accounts()
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["account_id", "name", "category", "borrowing_type", "allocation"])
+                writer.writerow(["account_id", "name", "category", "borrowing_type", "allocation", "created_at", "updated_at", "is_deleted"])
                 writer.writerows(rows)
 
     def import_account_titles(self):
@@ -114,7 +114,7 @@ class StartPage(tk.Frame):
 
             with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["journal_id", "date", "debit_account_id", "credit_account_id", "amount", "comment"])
+                writer.writerow(["journal_id", "date", "debit_account_id", "credit_account_id", "amount", "comment", "created_at", "updated_at", "is_deleted"])
                 writer.writerows(rows)
 
     def import_journal_entries(self):

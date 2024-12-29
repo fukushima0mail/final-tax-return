@@ -12,9 +12,32 @@ def create_journal_entries_table():
                 debit_account_id INTEGER,
                 credit_account_id INTEGER,
                 amount INTEGER NOT NULL,
-                comment TEXT
+                comment TEXT,
+                created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+                updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+                is_deleted BOOLEAN DEFAULT 0
             )
         ''')
+
+        trigger_name = "update_updated_at_journal_entries"
+        trigger_check_query = f'''
+            SELECT name FROM sqlite_master
+            WHERE type='trigger' AND name='{trigger_name}';
+        '''
+        c.execute(trigger_check_query)
+        trigger_exists = c.fetchone() is not None
+
+        if not trigger_exists:
+            c.execute(f'''
+                CREATE TRIGGER {trigger_name}
+                AFTER UPDATE ON journal_entries
+                FOR EACH ROW
+                BEGIN
+                    UPDATE journal_entries
+                    SET updated_at = CURRENT_TIMESTAMP
+                    WHERE id = OLD.id;
+                END
+            ''')
 
 def add_journal(date, debit_account_name, credit_account_name, amount, comment):
     with DBConnection() as c:
@@ -61,7 +84,7 @@ def update_opening_balance_journal(journal_id, debit_account_id, amount):
 def get_export_journals():
     with DBConnection() as c:
         c.execute('''
-            SELECT journal_id, date, debit_account_id, credit_account_id, amount, comment
+            SELECT journal_id, date, debit_account_id, credit_account_id, amount, comment, created_at, updated_at, is_deleted
             FROM journal_entries
         ''')
         rows = c.fetchall()
@@ -122,6 +145,17 @@ def get_general(account_id):
     return rows
 
 def import_journals(rows):
+    casted_rows = [(
+        journal_id,
+        date,
+        debit_account_id if debit_account_id else None,
+        credit_account_id if credit_account_id else None,
+        int(amount),
+        comment,
+        created_at,
+        updated_at,
+        int(is_deleted)
+    ) for journal_id, date, debit_account_id, credit_account_id, amount, comment, created_at, updated_at, is_deleted in rows]
     with DBConnection() as c:
         c.execute('DELETE FROM journal_entries')
-        c.executemany('INSERT INTO journal_entries (journal_id, date, debit_account_id, credit_account_id, amount, comment) VALUES (?, ?, ?, ?, ?, ?, ?)', rows)
+        c.executemany('INSERT INTO journal_entries (journal_id, date, debit_account_id, credit_account_id, amount, comment, created_at, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', casted_rows)

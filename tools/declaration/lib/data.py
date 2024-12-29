@@ -23,7 +23,7 @@ def get_pl_data():
     profits = []
     for account in [a for a in accounts_pl if a[1] == CATEGORY_PROFIT]:
         name, _, allocation, borrowing_type, debit_total, credit_total = account
-        total = round((debit_total - credit_total) * allocation / 100 * borrowing_type)
+        total = round((debit_total - credit_total) * borrowing_type)
         profits.append({"name": name, "total": total})
 
     # Category 5: 費用

@@ -21,9 +21,32 @@ def create_account_titles_table():
                 name TEXT NOT NULL,
                 category SMALLINT NOT NULL,
                 borrowing_type INTEGER DEFAULT 1,
-                allocation INTEGER DEFAULT 0
+                allocation INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+                updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+                is_deleted BOOLEAN DEFAULT 0
             )
         ''')
+
+        trigger_name = "update_updated_at_account_titles"
+        trigger_check_query = f'''
+            SELECT name FROM sqlite_master
+            WHERE type='trigger' AND name='{trigger_name}';
+        '''
+        c.execute(trigger_check_query)
+        trigger_exists = c.fetchone() is not None
+
+        if not trigger_exists:
+            c.execute(f'''
+                CREATE TRIGGER {trigger_name}
+                AFTER UPDATE ON account_titles
+                FOR EACH ROW
+                BEGIN
+                    UPDATE account_titles
+                    SET updated_at = CURRENT_TIMESTAMP
+                    WHERE id = OLD.id;
+                END
+            ''')
 
 def add_account(name, category, borrowing_type, allocation):
     with DBConnection() as c:
@@ -34,7 +57,7 @@ def add_account(name, category, borrowing_type, allocation):
 
 def get_export_accounts():
     with DBConnection() as c:
-        c.execute('SELECT account_id, name, category, borrowing_type, allocation FROM account_titles')
+        c.execute('SELECT account_id, name, category, borrowing_type, allocation, created_at, updated_at, is_deleted FROM account_titles')
         rows = c.fetchall()
     return rows
 
@@ -92,7 +115,7 @@ def delete_account(account_id):
         c.execute('DELETE FROM journal_entries WHERE debit_account_id = ? OR credit_account_id = ?', (account_id, account_id))
 
 def import_accounts(rows):
-    casted_rows = [(account_id, name, int(category), int(borrowing_type), int(allocation)) for account_id, name, category, borrowing_type, allocation in rows]
+    casted_rows = [(account_id, name, int(category), int(borrowing_type), int(allocation), created_at, updated_at, int(is_deleted)) for account_id, name, category, borrowing_type, allocation, created_at, updated_at, is_deleted in rows]
     with DBConnection() as c:
         c.execute('DELETE FROM account_titles')
-        c.executemany('INSERT INTO account_titles (account_id, name, category, borrowing_type, allocation) VALUES (?, ?, ?, ?, ?)', casted_rows)
+        c.executemany('INSERT INTO account_titles (account_id, name, category, borrowing_type, allocation, created_at, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', casted_rows)

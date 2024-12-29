@@ -87,7 +87,7 @@ class AccountPage(tk.Frame):
         self.tree.delete(*self.tree.get_children())  # Clear existing entries
         account_titles = get_all_accounts()
 
-        for entry_id, account_id, name, category, borrowing_type, allocation in account_titles:
+        for entry_id, account_id, name, category, borrowing_type, allocation, _, _, _ in account_titles:
             category_text = [k for k, v in CATEGORY_OPTIONS.items() if v == category][0]
             self.tree.insert('', 'end', iid=entry_id, values=(account_id, name, category_text, borrowing_type, allocation))
 

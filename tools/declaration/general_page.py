@@ -41,7 +41,7 @@ class GeneralLedgerPage(tk.Frame):
             widget.destroy()
 
         account_titles = get_all_accounts()
-        for _, account_id, account_name, category, borrowing_type, allocation in account_titles:
+        for _, account_id, account_name, category, borrowing_type, allocation, _, _, _ in account_titles:
             journal_entries = get_general(account_id)
             if journal_entries:
                 # Create a label for each account title

@@ -89,6 +89,7 @@ def update_account(account_id, name, category, borrowing_type, allocation):
 def delete_account(account_id):
     with DBConnection() as c:
         c.execute('DELETE FROM account_titles WHERE account_id = ?', (account_id,))
+        c.execute('DELETE FROM journal_entries WHERE debit_account_id = ? OR credit_account_id = ?', (account_id, account_id))
 
 def import_accounts(rows):
     casted_rows = [(account_id, name, int(category), int(borrowing_type), int(allocation)) for account_id, name, category, borrowing_type, allocation in rows]

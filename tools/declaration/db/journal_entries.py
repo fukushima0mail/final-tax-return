@@ -98,6 +98,7 @@ def get_all_journals():
             JOIN account_titles d ON j.debit_account_id = d.account_id
             JOIN account_titles c ON j.credit_account_id = c.account_id
             WHERE credit_account_id is not null
+            ORDER BY j.created_at
         ''')
         rows = c.fetchall()
     return rows

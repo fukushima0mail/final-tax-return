@@ -73,7 +73,7 @@ def get_opening_balance_account():
         rows = c.fetchall()
     return [(account_id, name, {v: k for k, v in CATEGORY_OPTIONS.items()}[category]) for account_id, name, category in rows]
 
-def get_pl():
+def get_total_of_account():
     with DBConnection() as c:
         c.execute('''
             SELECT

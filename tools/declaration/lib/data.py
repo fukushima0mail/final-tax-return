@@ -1,5 +1,5 @@
 
-from db.account_titles import get_pl
+from db.account_titles import get_total_of_account
 
 
 def get_pl_data():
@@ -17,7 +17,7 @@ def get_pl_data():
     CATEGORY_PROFIT = 4
     CATEGORY_LOSS = 5
 
-    accounts_pl = get_pl()
+    accounts_pl = get_total_of_account()
 
     # Category 4: 収益
     profits = []
@@ -45,4 +45,58 @@ def get_pl_data():
         "net": net,
         "special_deduction": special_deduction,
         "income_amount": income_amount,
+    }
+
+def get_bs_data():
+    """
+    貸借対照表のデータを計算して返す
+
+    Returns:
+        dict: 貸借対照表のデータ
+            - assets (list of dict): 資産リスト [{'name': str, 'total': int}, ...]
+            - liabilities (list of dict): 負債リスト [{'name': str, 'total': int}, ...]
+            - net_assets (list of dict): 純資産リスト [{'name': str, 'total': int}, ...]
+            - total_assets (int): 資産の合計金額
+            - total_liabilities (int): 負債の合計金額
+            - total_net_assets (int): 純資産の合計金額
+    """
+    CATEGORY_ASSET = 1
+    CATEGORY_LIABILITY = 2
+    CATEGORY_NET_ASSET = 3
+
+    accounts_bs = get_total_of_account()
+
+    # 資産 (Assets)
+    assets = []
+    for account in [a for a in accounts_bs if a[1] == CATEGORY_ASSET]:
+        name, _, allocation, borrowing_type, debit_total, credit_total = account
+        total = round((debit_total - credit_total) * borrowing_type)
+        assets.append({"name": name, "total": total})
+
+    # 負債 (Liabilities)
+    liabilities = []
+    for account in [a for a in accounts_bs if a[1] == CATEGORY_LIABILITY]:
+        name, _, allocation, borrowing_type, debit_total, credit_total = account
+        total = round((debit_total - credit_total) * borrowing_type)
+        liabilities.append({"name": name, "total": total})
+
+    # 純資産 (Net Assets)
+    net_assets = []
+    for account in [a for a in accounts_bs if a[1] == CATEGORY_NET_ASSET]:
+        name, _, allocation, borrowing_type, debit_total, credit_total = account
+        total = round((debit_total - credit_total) * borrowing_type)
+        net_assets.append({"name": name, "total": total})
+
+    # 合計値
+    total_assets = sum([a["total"] for a in assets])
+    total_liabilities = sum([l["total"] for l in liabilities])
+    total_net_assets = sum([n["total"] for n in net_assets])
+
+    return {
+        "assets": assets,
+        "liabilities": liabilities,
+        "net_assets": net_assets,
+        "total_assets": total_assets,
+        "total_liabilities": total_liabilities,
+        "total_net_assets": total_net_assets,
     }
